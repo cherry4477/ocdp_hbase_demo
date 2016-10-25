@@ -50,6 +50,8 @@ func main() {
 
 	if *table == "" {
 		return
+	} else {
+		fmt.Println(*table)
 	}
 
 	columns := make([]column, 0)
