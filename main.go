@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"bytes"
+	"flag"
 )
 
 //{"name":"test5", "column_families":[{
@@ -43,6 +44,13 @@ func init() {
 
 func main() {
 	fmt.Println("Let's go!!!")
+
+	table := flag.String("ct", "", "create table")
+	flag.Parse()
+
+	if *table == "" {
+		return
+	}
 
 	columns := make([]column, 0)
 	column := column{Name: "cf", Bloomfilter: true, Time_to_live: 10, In_memory: false, Max_versions: 2, Compression: "", Max_value_length: 50, Block_cache_enabled: true}
