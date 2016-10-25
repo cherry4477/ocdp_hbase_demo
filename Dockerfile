@@ -9,4 +9,4 @@ WORKDIR /go/src/github.com/asiainfoLDP/hadoop_hbase_demo
 
 RUN go build
 
-CMD ["sh", "-c", "./hadoop_hbase_demo"]
+CMD ["sh", "-c", "./ocdp_hbase_demo"]
