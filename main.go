@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"bytes"
 	"flag"
+	"os"
 )
 
 //{"name":"test5", "column_families":[{
@@ -38,58 +39,96 @@ type column struct {
 	Block_cache_enabled bool   `json:"block_cache_enabled"`
 }
 
+var (
+	hbaseHost string = "http://hadoop-1.jcloud.local"
+	hbasePort string
+	hbaseNamespace string
+)
+
 func init() {
-	//os.Getenv("BSI_HDFS_HBASEFORDEMO_HOST")
+	hbasePort = os.Getenv("BSI_HBASE_HBASEDEMO_PORT")
+	hbaseNamespace = os.Getenv("d479d1429ab811e6b845fa163d0e0615")
 }
 
 func main() {
 	fmt.Println("Let's go!!!")
 
-	table := flag.String("ct", "", "create table")
+	createTable := flag.String("create", "default", "create table.")
+	lsTables := flag.String("ls", "", "list all tables.")
 	flag.Parse()
 
-	if *table == "" {
-		return
-	} else {
-		fmt.Println(*table)
-	}
+	if *createTable != "" {
+		columns := make([]column, 0)
+		column := column{Name: "cf", Bloomfilter: true, Time_to_live: 10, In_memory: false, Max_versions: 2, Compression: "", Max_value_length: 50, Block_cache_enabled: true}
+		columns = append(columns, column)
 
-	columns := make([]column, 0)
-	column := column{Name: "cf", Bloomfilter: true, Time_to_live: 10, In_memory: false, Max_versions: 2, Compression: "", Max_value_length: 50, Block_cache_enabled: true}
-	columns = append(columns, column)
+		tableName := hbaseNamespace+":"+*createTable
+		tableInfo := tableInfo{Name: tableName, Column_families: columns}
 
-	tableInfo := tableInfo{Name: "59e695e786ba11e68852fa163d0e0615:t2", Column_families: columns}
-
-	body, err := json.Marshal(tableInfo)
-	if err != nil {
-		fmt.Println("Marshal err:", err)
-		return
-	}
-
-	url := "http://36.110.132.55:8070/59e695e786ba11e68852fa163d0e0615:t1/schema"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-	if err != nil {
-		fmt.Println("NewRequest err:", err)
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Println("http.DefaultClient.Do err:", err)
-		return
-	}
-
-	if resp.StatusCode == http.StatusOK {
-		fmt.Println("OK.")
-		return
-	} else {
-		respBody, err := ioutil.ReadAll(resp.Body)
+		body, err := json.Marshal(tableInfo)
 		if err != nil {
-			fmt.Println("ReadAll err:", err)
+			fmt.Println("Marshal err:", err)
 			return
 		}
-		fmt.Println(string(respBody))
+
+		url := hbaseHost+":"+hbasePort+"/"+hbaseNamespace+":"+*createTable+"/schema"
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+		if err != nil {
+			fmt.Println("NewRequest err:", err)
+			return
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("http.DefaultClient.Do err:", err)
+			return
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			fmt.Println("OK.")
+			return
+		} else {
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println("ReadAll err:", err)
+				return
+			}
+			fmt.Println(string(respBody))
+		}
+	}else if *lsTables != "" {
+		url := hbaseHost+":"+hbasePort
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			fmt.Println("NewRequest err:", err)
+			return
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("http.DefaultClient.Do err:", err)
+			return
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println("ReadAll err:", err)
+				return
+			}
+			fmt.Println(string(respBody))
+		} else {
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println("ReadAll err:", err)
+				return
+			}
+			fmt.Println(string(respBody))
+			return
+		}
+	} else {
+		fmt.Println("End...")
 	}
 
+	return
 }
