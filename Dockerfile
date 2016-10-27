@@ -12,6 +12,6 @@ COPY krb5.conf /etc/
 RUN apt-get update   && \
     apt-get install -y --no-install-recommends  krb5-user krb5-config
 
-COPY start.sh /hadoop_demo/
+COPY start.sh /ocdp_hbase_demo/
 
 CMD ./start.sh
